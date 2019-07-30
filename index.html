@@ -39,13 +39,16 @@
   <div class="progress-bar" role="progressbar" :style="{ width: proc+'%' }" :aria-valuenow="proc" aria-valuemin="0" aria-valuemax="100">{{proc}}%</div>
 </div></section>
       `,
+      data: () => {
+        return {todos: window.todos}
+      },
       computed: {
         all: function() {
-          return window.todos.length
+          return this.todos.length
         },
         done: function() {
           let done = 0;
-          for (let i=0;i<this.all;++i) if (todos[i].done) done++
+          for (let i=0;i<this.all;++i) if (this.todos[i].done) done++
           return done
         },
         proc: function() {
@@ -54,17 +57,19 @@
       }
     }
     const create = {
-      data: {
-        newItem: {
-          content: '',
-          priority: window.maxPriority+1
+      data: () => {
+        return {
+          newItem: {
+            content: '',
+            priority: window.maxPriority+1
+          }
         }
       },
       template: `
         <section class="input-group">
-          <input type="text" style="width: 70%" class="form-control" placeholder="Title">
+          <input type="text" style="width: 70%" class="form-control" placeholder="Title" v-model="newItem.content">
           <select class="custom-select">
-            <option v-for="i in (window.maxPriority+1)">{{i}}</option>
+            <option v-for="i in newItem.priority" v-model="newItem.priority">{{i}}</option>
           </select>
           <button @click="add" class="btn btn-outline-primary">Create</button>
         </section>
