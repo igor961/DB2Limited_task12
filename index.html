@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TODO app</title>
+  <script src="vue.js"></script>
+  <link rel="stylesheet" href="bootstrap.min.css">
+  <style>
+    #app {
+      display: flex;
+      flex-direction: column;
+      margin: auto;
+      width: 50%;
+      height: 50vh;
+    }
+    .line-through {
+      text-decoration: line-through;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <progress-sec></progress-sec><hr>
+    <create-sec></create-sec><hr>
+    <filter-sec></filter-sec><hr>
+    <view-sec :todos="todos"></view-sec>
+  </div>
+  <script>
+    window.todos = [
+      {content: 'First', priority: 1, done: true},
+      {content: 'Second', priority: 2, done: false},
+      {content: 'Third', priority: 3, done: false}
+    ]
+    window.maxPriority = 3
+    const progress = {
+      template: `<section>
+<h1>Tasks 1/4</h1>
+        <div class="progress"> 
+  <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+</div></section>
+      `
+    }
+    const create = {
+      data: {
+        newItem: {
+          content: '',
+          priority: window.maxPriority+1
+        }
+      },
+      template: `
+        <section class="input-group">
+          <input type="text" style="width: 70%" class="form-control" placeholder="Title">
+          <select class="custom-select">
+            <option v-for="i in (window.maxPriority+1)">{{i}}</option>
+          </select>
+          <button @click="add" class="btn btn-outline-primary">Create</button>
+        </section>
+        `,
+      methods: {
+        add (obj) {
+          window.push(this.newItem)
+        }
+      }
+    }
+    const filter = {
+      template: `
+        <section>
+          <input type="search" class="form-control" placeholder="Seacrh">
+          <div class="btn-group btn-group-toggle mt-3">
+            <label class="btn btn-primary active">
+    <input type="radio" name="item-status" autocomplete="off" checked>All</label>
+                     <label class="btn btn-primary">
+    <input type="radio" name="item-status" autocomplete="off">Done</label>
+
+            <label class="btn btn-primary">
+    <input type="radio" name="item-status" autocomplete="off">Undone</label>
+          </div>
+<br>
+<div class="btn-group btn-group-toggle mt-3">
+            <label class="btn btn-primary active">
+    <input type="radio" name="item-status" autocomplete="off" checked>Ascending</label>
+                     <label class="btn btn-primary">
+    <input type="radio" name="item-status" autocomplete="off">Descending</label>
+          </div>
+        </section>
+      `
+    }
+    const view = {
+      template: `
+        <section class="view_container">
+          <ul class="list-group">
+      <li class="list-group-item" v-for="el in todos" :class="el.class">{{el.content}}-{{el.priority}}<button style="float: right" v-if="!el.done">Do</button></li>
+          </ul>
+        </section>
+      `,
+      data: function() {
+        return {todos: window.todos}
+      }
+    }
+    const app = new Vue({
+      el: '#app',
+      data: {
+        todos: window.todos,
+      },
+      components: {
+        progressSec: progress,
+        createSec: create,
+        filterSec: filter,
+        viewSec: view
+      }
+    }) 
+  </script>
+</body>
+</html>
