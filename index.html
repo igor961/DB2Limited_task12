@@ -34,11 +34,24 @@
     window.maxPriority = 3
     const progress = {
       template: `<section>
-<h1>Tasks 1/4</h1>
+<h1>Tasks {{done}}/{{all}}</h1>
         <div class="progress"> 
-  <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+  <div class="progress-bar" role="progressbar" :style="{ width: proc+'%' }" :aria-valuenow="proc" aria-valuemin="0" aria-valuemax="100">{{proc}}%</div>
 </div></section>
-      `
+      `,
+      computed: {
+        all: function() {
+          return window.todos.length
+        },
+        done: function() {
+          let done = 0;
+          for (let i=0;i<this.all;++i) if (todos[i].done) done++
+          return done
+        },
+        proc: function() {
+          return parseInt(this.done/this.all*100)
+        }
+      }
     }
     const create = {
       data: {
@@ -89,7 +102,10 @@
       template: `
         <section class="view_container">
           <ul class="list-group">
-      <li class="list-group-item" v-for="el in todos" :class="el.class">{{el.content}}-{{el.priority}}<button style="float: right" v-if="!el.done">Do</button></li>
+      <li class="list-group-item" v-for="el in todos" :class="el.class">
+        {{el.content}} - {{el.priority}}
+        <button style="float: right" v-if="!el.done">Do</button>
+      </li>
           </ul>
         </section>
       `,
