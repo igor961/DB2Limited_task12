@@ -23,11 +23,24 @@
     <progress-sec :todos="todos"></progress-sec><hr>
     <create-sec @create="create" :priority="priority"></create-sec><hr>
     <filter-sec></filter-sec><hr>
-    <view-sec @dotask.once="doTask" :todos="todos"></view-sec>
+    <view-sec @dotask="doTask" :todos="todos"></view-sec>
   </div>
   <script>
     const progress = {
-      template: `<section> <h1>Tasks {{done}}/{{all}}</h1> <div class="progress"> <div class="progress-bar" role="progressbar" :style="{ width: proc+'%' }" :aria-valuenow="proc" aria-valuemin="0" aria-valuemax="100">{{proc}}%</div> </div> </section>`, 
+      template: `
+        <section>
+          <h1>Tasks {{done}}/{{all}}</h1>
+          <div class="progress">
+            <div class="progress-bar" 
+                 role="progressbar"
+                :style="{ width: proc+'%' }"
+                :aria-valuenow="proc"
+                 aria-valuemin="0"
+                 aria-valuemax="100">
+              {{proc}}%
+            </div>
+          </div>
+      </section>`, 
       props: {todos: Array},
       computed: {
         all: function() {
@@ -55,33 +68,67 @@
       },
       template: `
         <section class="input-group">
-          <input type="text" style="width: 70%" class="form-control" placeholder="Title" v-model="newItem.content">
-          <select class="custom-select">
-            <option v-for="i in priority" v-model="newItem.priority">{{i}}</option>
+          <input type="text"
+                 style="width: 70%"
+                 class="form-control" 
+                 placeholder="Title" 
+                 v-model="newItem.content">
+          <select class="custom-select" 
+                  v-model="newItem.priority">
+            <option v-for="i in priority">{{i}}</option>
           </select>
-          <button class="btn btn-outline-primary" @click="$emit('create', newItem)">Create</button>
+          <button class="btn
+                         btn-outline-primary"
+                  @click="$emit('create', newItem)">
+            Create
+          </button>
         </section>
         `
     }
     const filter = {
       template: `
         <section>
-          <input type="search" class="form-control" placeholder="Seacrh">
+          <input type="search"
+          class="form-control"
+          placeholder="Seacrh">
+          <div class="btn-group btn-group-toggle mt-3">
+            <label class="btn 
+                          btn-primary 
+                          active">
+              <input type="radio"
+                     name="item-status"
+                     autocomplete="off"
+                     checked>
+              All
+            </label>
+            <label class="btn btn-primary">
+              <input type="radio"
+                     name="item-status"
+                     autocomplete="off">
+                Done
+            </label>
+            <label class="btn btn-primary">
+              <input type="radio"
+                     name="item-status"
+                     autocomplete="off">
+              Undone
+            </label>
+          </div>
+          <br>
           <div class="btn-group btn-group-toggle mt-3">
             <label class="btn btn-primary active">
-    <input type="radio" name="item-status" autocomplete="off" checked>All</label>
-                     <label class="btn btn-primary">
-    <input type="radio" name="item-status" autocomplete="off">Done</label>
-
+              <input type="radio"
+                     name="item-status"
+                     autocomplete="off" 
+                     checked>
+               Ascending
+            </label>
             <label class="btn btn-primary">
-    <input type="radio" name="item-status" autocomplete="off">Undone</label>
-          </div>
-<br>
-<div class="btn-group btn-group-toggle mt-3">
-            <label class="btn btn-primary active">
-    <input type="radio" name="item-status" autocomplete="off" checked>Ascending</label>
-                     <label class="btn btn-primary">
-    <input type="radio" name="item-status" autocomplete="off">Descending</label>
+              <input type="radio"
+                     name="item-status"
+                     autocomplete="off">
+              Descending
+            </label>
           </div>
         </section>
       `
@@ -90,10 +137,13 @@
       template: `
         <section class="view_container">
           <ul class="list-group">
-      <li v-for="(el, i) in todos" v-on="{ click: el.done ? null : () => $emit('dotask', i) }" class="list-group-item" :class="{ 'line-through': el.done }">
-      {{el.content}} - {{el.priority}}
-        <button style="float: right">Del</button>
-      </li>
+          <li v-for="(el, i) in todos"
+              @click="() => (el.done)?null:$emit('dotask', i)"
+              class="list-group-item"
+              :class="{ 'line-through': el.done }">
+            {{el.content}} - {{el.priority}}
+            <button style="float: right">Del</button>
+          </li>
           </ul>
         </section>
       `,
@@ -120,7 +170,7 @@
         },
         doTask(e) {
           console.log('Task done', e, this.todos[e].done)
-          this.$set(this.todos[e], 'done', true)
+          Vue.set(this.todos[e], 'done', true)
         }
       },
       components: {
