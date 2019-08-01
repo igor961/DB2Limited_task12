@@ -20,28 +20,15 @@
 </head>
 <body>
   <div id="app">
-    <progress-sec></progress-sec><hr>
-    <create-sec></create-sec><hr>
+    <progress-sec :todos="todos"></progress-sec><hr>
+    <create-sec @create="create" :priority="priority"></create-sec><hr>
     <filter-sec></filter-sec><hr>
-    <view-sec :todos="todos"></view-sec>
+    <view-sec @dotask.once="doTask" :todos="todos"></view-sec>
   </div>
   <script>
-    window.todos = [
-      {content: 'First', priority: 1, done: true},
-      {content: 'Second', priority: 2, done: false},
-      {content: 'Third', priority: 3, done: false}
-    ]
-    window.maxPriority = 3
     const progress = {
-      template: `<section>
-<h1>Tasks {{done}}/{{all}}</h1>
-        <div class="progress"> 
-  <div class="progress-bar" role="progressbar" :style="{ width: proc+'%' }" :aria-valuenow="proc" aria-valuemin="0" aria-valuemax="100">{{proc}}%</div>
-</div></section>
-      `,
-      data: () => {
-        return {todos: window.todos}
-      },
+      template: `<section> <h1>Tasks {{done}}/{{all}}</h1> <div class="progress"> <div class="progress-bar" role="progressbar" :style="{ width: proc+'%' }" :aria-valuenow="proc" aria-valuemin="0" aria-valuemax="100">{{proc}}%</div> </div> </section>`, 
+      props: {todos: Array},
       computed: {
         all: function() {
           return this.todos.length
@@ -57,11 +44,12 @@
       }
     }
     const create = {
+      props: ['priority'],
       data: () => {
         return {
           newItem: {
             content: '',
-            priority: window.maxPriority+1
+            priority: 1
           }
         }
       },
@@ -69,16 +57,11 @@
         <section class="input-group">
           <input type="text" style="width: 70%" class="form-control" placeholder="Title" v-model="newItem.content">
           <select class="custom-select">
-            <option v-for="i in newItem.priority" v-model="newItem.priority">{{i}}</option>
+            <option v-for="i in priority" v-model="newItem.priority">{{i}}</option>
           </select>
-          <button @click="add" class="btn btn-outline-primary">Create</button>
+          <button class="btn btn-outline-primary" @click="$emit('create', newItem)">Create</button>
         </section>
-        `,
-      methods: {
-        add (obj) {
-          window.todos.push(this.newItem)
-        }
-      }
+        `
     }
     const filter = {
       template: `
@@ -107,21 +90,38 @@
       template: `
         <section class="view_container">
           <ul class="list-group">
-      <li class="list-group-item" v-for="el in todos" :class="el.class">
-        {{el.content}} - {{el.priority}}
-        <button style="float: right" v-if="!el.done">Do</button>
+      <li v-for="(el, i) in todos" v-on="{ click: el.done ? null : () => $emit('dotask', i) }" class="list-group-item" :class="{ 'line-through': el.done }">
+      {{el.content}} - {{el.priority}}
+        <button style="float: right">Del</button>
       </li>
           </ul>
         </section>
       `,
-      data: function() {
-        return {todos: window.todos}
+      props: {
+        todos: Array
       }
     }
     const app = new Vue({
       el: '#app',
       data: {
-        todos: window.todos,
+        todos: [
+          {content: 'First', priority: 1, done: true},
+          {content: 'Second', priority: 2, done: 0},
+          {content: 'Third', priority: 3, done: 0}
+        ],
+      },
+      computed: {
+        priority() {return this.todos.length+1}
+      },
+      methods: {
+        create(e) {
+          console.log('Hi', e)
+          this.todos.splice(e.priority-1, 0, {...e, done: false})
+        },
+        doTask(e) {
+          console.log('Task done', e, this.todos[e].done)
+          this.$set(this.todos[e], 'done', true)
+        }
       },
       components: {
         progressSec: progress,
