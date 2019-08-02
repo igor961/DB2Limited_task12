@@ -22,8 +22,8 @@
   <div id="app">
     <progress-sec :todos="todos"></progress-sec><hr>
     <create-sec @create="create" :priority="priority"></create-sec><hr>
-    <filter-sec></filter-sec><hr>
-    <view-sec @dotask="doTask" :todos="todos"></view-sec>
+    <filter-sec v-on="{ filterStatus, sortPriority, search }"></filter-sec><hr>
+    <view-sec @dotask="doTask" :todos="filteredTodos"></view-sec>
   </div>
   <script>
     const progress = {
@@ -73,7 +73,7 @@
                  class="form-control" 
                  placeholder="Title" 
                  v-model="newItem.content">
-          <select class="custom-select" 
+          <select class="custom-select"
                   v-model="newItem.priority">
             <option v-for="i in priority">{{i}}</option>
           </select>
@@ -86,49 +86,55 @@
         `
     }
     const filter = {
+      data() {
+        return {
+          btns: [{ label: 'All', active: true }, 
+                 { label: 'Done', active: false }, 
+                 { label: 'Undone', active: false }],
+          sortBtns: [
+            { label: 'Ascending', active: true, op: 0 }, 
+            { label: 'Descending', active: false, op: 1 }
+          ],
+          searchStr: ''
+        }
+      },
+      methods: {
+        filterProgress(el) {
+          this._clearBtns(this.btns, 'active')
+          el.active = true
+          this.$emit('filterStatus', el.label)
+        },
+        sortPriority(el) {
+          this._clearBtns(this.sortBtns, 'active')
+          el.active = true
+          this.$emit('sortPriority', el.op)
+        },
+        _clearBtns(arr, field) {
+          arr.forEach((el)=>{el[field]=false})
+        }
+      },
       template: `
         <section>
-          <input type="search"
-          class="form-control"
-          placeholder="Seacrh">
+          <input v-model="searchStr"
+                @input="$emit('search', searchStr)"
+                 type="search"
+                 class="form-control"
+                 placeholder="Search">
           <div class="btn-group btn-group-toggle mt-3">
-            <label class="btn 
-                          btn-primary 
-                          active">
-              <input type="radio"
-                     name="item-status"
-                     autocomplete="off"
-                     checked>
-              All
-            </label>
-            <label class="btn btn-primary">
-              <input type="radio"
-                     name="item-status"
-                     autocomplete="off">
-                Done
-            </label>
-            <label class="btn btn-primary">
-              <input type="radio"
-                     name="item-status"
-                     autocomplete="off">
-              Undone
-            </label>
+            <button v-for="el in btns" class="btn 
+                          btn-primary" 
+                  @click="filterProgress(el)"
+                  :class="{ active: el.active }">
+              {{el.label}}
+            </button> 
           </div>
           <br>
           <div class="btn-group btn-group-toggle mt-3">
-            <label class="btn btn-primary active">
-              <input type="radio"
-                     name="item-status"
-                     autocomplete="off" 
-                     checked>
-               Ascending
-            </label>
-            <label class="btn btn-primary">
-              <input type="radio"
-                     name="item-status"
-                     autocomplete="off">
-              Descending
-            </label>
+            <button v-for="el in sortBtns" class="btn btn-primary"
+                   @click="sortPriority(el)"
+                   :class="{ active: el.active }">
+              {{el.label}}
+            </button>
           </div>
         </section>
       `
@@ -159,9 +165,37 @@
           {content: 'Second', priority: 2, done: 0},
           {content: 'Third', priority: 3, done: 0}
         ],
+        filterOption: 'All',
+        currentSorting: 0,
+        searchStr: '',
+        searchOption: false
       },
       computed: {
-        priority() {return this.todos.length+1}
+        priority() {
+          return this.todos.length+1
+        },
+        filteredTodos() {
+          let newArr = []
+          switch (this.filterOption) {
+            case 'Done':
+              newArr = this.todos.filter(el => el.done)
+              break
+            case 'Undone':
+              newArr = this.todos.filter(el => !el.done)
+              break 
+            case 'All':
+            default:
+              newArr = this.todos
+          }
+          if (this.searchOption)
+            newArr = newArr.filter(el => el.content
+                                           .toLowerCase()
+                                           .includes(this.searchStr))
+          return newArr 
+        }
+      },
+      created() {
+        this.filterStatus()
       },
       methods: {
         create(e) {
@@ -171,6 +205,19 @@
         doTask(e) {
           console.log('Task done', e, this.todos[e].done)
           Vue.set(this.todos[e], 'done', true)
+        },
+        sortPriority(a) {
+          if (a != this.currentSorting) {
+            this.todos = this.todos.reverse()
+            this.currentSorting = !this.currentSorting
+          }
+        },
+        filterStatus(a) {
+          this.filterOption = a
+        },
+        search(str) {
+          this.searchOption = true
+          this.searchStr = str.toLowerCase()
         }
       },
       components: {
