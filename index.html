@@ -23,7 +23,7 @@
     <progress-sec :todos="todos"></progress-sec><hr>
     <create-sec @create="create" :priority="priority"></create-sec><hr>
     <filter-sec v-on="{ filterStatus, sortPriority, search }"></filter-sec><hr>
-    <view-sec @dotask="doTask" :todos="filteredTodos"></view-sec>
+    <view-sec v-on="{ doTask, deleteTask }" :todos="filteredTodos"></view-sec>
   </div>
   <script>
     const progress = {
@@ -144,11 +144,15 @@
         <section class="view_container">
           <ul class="list-group">
           <li v-for="(el, i) in todos"
-              @click="() => (el.done)?null:$emit('dotask', i)"
+              @click="() => (el.done)?null:$emit('doTask', i)"
               class="list-group-item"
               :class="{ 'line-through': el.done }">
             {{el.content}} - {{el.priority}}
-            <button style="float: right">Del</button>
+            <button @click="$emit('deleteTask', i)" 
+                     class="close" 
+                     style="float: right">
+              <span aria-hidden="true">&times;</span>
+            </button>
           </li>
           </ul>
         </section>
@@ -218,6 +222,9 @@
         search(str) {
           this.searchOption = true
           this.searchStr = str.toLowerCase()
+        },
+        deleteTask(i) {
+          this.todos.splice(i, 1)
         }
       },
       components: {
